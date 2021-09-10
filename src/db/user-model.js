@@ -60,7 +60,7 @@ schema.virtual('tasks', {
 // definining as statics makes it accessible from other modules
 schema.methods.generateAuthToken = async function() {
     //console.log(this.email)
-    const token = jwt.sign({_id: this._id.toString()}, "this is my secret")
+    const token = jwt.sign({_id: this._id.toString()}, process.env.JWT_KEY)
     //console.log(this._id, token)
     this.tokens = this.tokens.concat({token})
     return token

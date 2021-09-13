@@ -20,7 +20,7 @@ router.post('/users',async (req, res) => {
         let {name,age=0,email} = user
         res.status(201).send({email,name,age,token})
     } catch(e) {
-        console.log(e)
+        //console.log(e)
         res.status(400).send(e.message)
     }
 })
@@ -36,7 +36,7 @@ router.post("/users/login", async (req,res) => {
         let {name,age=0,email} = user
         res.status(200).send({email,name,age,token})
     } catch(e) {
-        console.log(e)
+        //console.log(e)
         res.status(400).send(e.message)
     }
 })
@@ -123,7 +123,7 @@ router.delete('/users/me', auth, async (req,res) => {
         let message = "User Deleted Successfully"
         res.send({email, name, age, message})
     } catch(e) {
-        console.log(e)
+        // console.log(e)
         res.status(500).send({"error":e.message})
     }
 })
@@ -137,13 +137,13 @@ const upload = multer({
         cb(undefined, true)
     }
 })
-router.post("/users/upload", auth, upload.single("upload"), async (req,res) => {
+router.post("/users/upload", auth, upload.single("avatar"), async (req,res) => {
     const buffer = await sharp(req.file.buffer).resize({width:250,height:250}).png().toBuffer()
     req.user.avatar = buffer // buffer is accessible only if dest is not set
     await req.user.save()
-    res.send("File Uploaded Successfully")
-}, (e, req,res,next) => {
-    res.send({"Error": e.message})
+    res.status(200).send("File Uploaded Successfully")
+}, (e, req, res, next) => {
+    res.status(400).send({"Error": e.message})
 })
 router.post("/users/delete/avatar", auth, async (req,res) => {
     req.user.avatar = undefined

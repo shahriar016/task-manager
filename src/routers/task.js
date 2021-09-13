@@ -8,13 +8,16 @@ const router = new express.Router()
 
 router.post('/tasks', auth, async (req,res) => {
     //const task = new Task(req.body)
+    //console.log("from /tasks post",req.body)
     const task = new Task({
         ...req.body, 
-        owner: req.user._id.toString()
+        owner: req.user._id
     })
     try {
         await task.save()
-        res.send(task)
+        const t = await Task.findById(task._id)
+        //console.log(t)
+        res.status(201).send({task})
     } catch(e) {
         res.status(500).send(e.message)
     }
@@ -24,7 +27,7 @@ router.post('/tasks', auth, async (req,res) => {
 // localhost:8081/tasks?sortBy=createdAt:asc&completed=true&limit=10&skip=20
 router.get("/tasks",auth, async (req,res) => {
     //return res.send(req.query)
-    const match = {}
+    const match = {owner: req.user._id}
     const sort = {}
     if(req.query.completed) {
         match.completed = req.query.completed === "true"
@@ -41,7 +44,7 @@ router.get("/tasks",auth, async (req,res) => {
         //const tasks = await req.user.populate('tasks').execPopulate()
         const tasks = await Task.find(
             match, // query values
-            '_id description completed createdAt', // which values to return. if null then all
+            '_id description completed owner createdAt', // which values to return. if null then all
             {
                 limit: parseInt(req.query.limit), // skipped if not provided 
                 skip: parseInt(req.query.skip), // skipped if not provided
@@ -50,10 +53,10 @@ router.get("/tasks",auth, async (req,res) => {
         ).exec()
 
         if(!tasks) return res.status(404).send()
-        console.log(tasks)
+        //console.log(tasks)
         res.send(tasks)
     } catch(e) {
-        console.log(e)
+        //console.log(e)
         res.status(500).send(e.message)
     }
 })
@@ -92,8 +95,9 @@ router.patch('/tasks/:id', auth, async (req,res) => {
 router.delete('/tasks/:id',auth,async (req,res) => {
     _id = req.params.id
     try {
-        const task = await Task.findOne({_id, owner: req.user._id.toString()})
+        const task = await Task.findOne({_id, owner: req.user._id})
         if(!task) return res.status(404).send()
+        console.log(task)
         await task.remove()
         res.send(task)
     } catch(e) {
